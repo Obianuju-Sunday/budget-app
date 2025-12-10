@@ -11,7 +11,7 @@ var UIController = (function() {
     function getInput(){
         var type = document.querySelector('.add__type').value;
         var description = document.querySelector('.add__description').value;
-        var value = document.querySelector('.add__value').value;
+        var value = Number(document.querySelector('.add__value').value);
 
         return {
             type,
