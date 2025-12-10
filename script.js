@@ -14,9 +14,9 @@ var UIController = (function() {
         var value = document.querySelector('.add__value').value;
 
         return {
-            type: type,
-            description: description,
-            value: value
+            type,
+            description,
+            value
         };
     }
 
@@ -32,7 +32,9 @@ var controller = (function(budgetCtrl, UICtrl) {
 
     var addItemFlow = function() {
         // 1. Get the field input data
-        
+    
+        var input = UICtrl.getInput();
+        console.log(input);
         // 2. Add the item to the budget controller
 
         // 3. Add the item to the UI
