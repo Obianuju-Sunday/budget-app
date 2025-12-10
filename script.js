@@ -8,7 +8,21 @@ var budgetController = (function() {
 // UI CONTROLLER
 
 var UIController = (function() {
+    function getInput(){
+        var type = document.querySelector('.add__type').value;
+        var description = document.querySelector('.add__description').value;
+        var value = document.querySelector('.add__value').value;
 
+        return {
+            type: type,
+            description: description,
+            value: value
+        };
+    }
+
+    return {
+        getInput
+    };
 
 }());
 
