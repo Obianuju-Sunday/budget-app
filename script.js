@@ -16,19 +16,44 @@ var budgetController = (function () {
     }
 
     var addItem = function (type, description, value) {
+        // var budgetSelector = type === 'inc' ? '.income__list' : '.expenses__list';
         if (type === 'inc') {
             var newItem = new Item(incomeItems.length, description, value);
             incomeItems.push(newItem);
+            // console.log(newItem); // Shit added for debugging and it works
+
             return newItem;
         } else {
             var newItem = new Item(expenseItems.length, description, value);
             expenseItems.push(newItem);
             return newItem;
+       }
+    }; 
+
+    var calculateTotalIncome = function(){
+        var totalIncome = 0;
+        for(var i = 0; i < incomeItems.length; i++){
+            totalIncome += incomeItems[i].value;
         }
-    };
+        return totalIncome;
+    }
+
+    var calculateTotalExpenses = function () {
+        var totalExpense = 0;
+        for (var i = 0; i < expenseItems.length; i++) {
+            totalExpense += expenseItems[i].value;
+        }
+        return totalExpense;
+    }
+
+    var calculateBudget = function () {
+        var netBudget = calculateTotalIncome() - calculateTotalExpenses();
+        console.log(netBudget)
+    }
 
     return {
-        addItem
+        addItem,
+        calculateBudget,
     };
 }());
 
@@ -67,7 +92,7 @@ var UIController = (function () {
 
     return {
         getInput,
-        displayItem
+        displayItem,
     };
 
 }());
@@ -87,9 +112,12 @@ var controller = (function (budgetCtrl, UICtrl) {
 
         // 3. Add the item to the UI
         UICtrl.displayItem(newItem, input.type);
+
         // 4. Calculate the budget
+        budgetCtrl.calculateBudget();
 
         // 5. Display the budget on the UI
+
 
         console.log('Add item flow triggered');
     };
