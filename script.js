@@ -48,20 +48,22 @@ var UIController = (function () {
     }
 
     function displayItem(obj, type) {
-        var newHtml;
-        if (type === 'inc') {
-            newHtml = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-            newHtml = newHtml.replace('%id%', obj.id);
-            newHtml = newHtml.replace('%description%', obj.description);
-            newHtml = newHtml.replace('%value%', obj.value);
-            document.querySelector('.income__list').insertAdjacentHTML('beforeend', newHtml);
-        } else {
-            newHtml = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-            newHtml = newHtml.replace('%id%', obj.id);
-            newHtml = newHtml.replace('%description%', obj.description);
-            newHtml = newHtml.replace('%value%', obj.value);
-            document.querySelector('.expenses__list').insertAdjacentHTML('beforeend', newHtml);
-        }
+        var html;
+        var budgetSelector = type === 'inc' ? '.income__list' : '.expenses__list';
+
+        html = `
+            <div class="item clearfix" id="${type}-${obj.id}">
+                <div class="item__description">${obj.description}</div>
+                <div class="right clearfix">
+                    <div class="item__value">${obj.value}</div>
+                    <div class="item__delete">
+                        <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
+                    </div>
+                </div>
+            </div>
+            `;
+        document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
+
     }
 
     return {
