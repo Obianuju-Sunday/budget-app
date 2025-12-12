@@ -63,7 +63,6 @@ var UIController = (function () {
             </div>
             `;
         document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
-
     }
 
     return {
@@ -81,12 +80,10 @@ var controller = (function (budgetCtrl, UICtrl) {
         // 1. Get the field input data
 
         var input = UICtrl.getInput();
-        console.log(input);
 
         // 2. Add the item to the budget controller
 
         var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
-        console.log(newItem);
 
         // 3. Add the item to the UI
         UICtrl.displayItem(newItem, input.type);
@@ -97,11 +94,10 @@ var controller = (function (budgetCtrl, UICtrl) {
         console.log('Add item flow triggered');
     };
 
+
     document.querySelector('.add__btn').addEventListener('click', addItemFlow);
 
-
     document.addEventListener('keypress', function (event) {
-        // console.log(event);
         if (event.key === 'Enter') {
             addItemFlow();
         }
