@@ -27,28 +27,29 @@ var budgetController = (function () {
             var newItem = new Item(expenseItems.length, description, value);
             expenseItems.push(newItem);
             return newItem;
-       }
-    }; 
+        }
+    };
 
-    var calculateTotalIncome = function(){
+    var calculateBudget = function () {
         var totalIncome = 0;
-        for(var i = 0; i < incomeItems.length; i++){
+        var totalExpense = 0;
+        var netBudget = 0;
+
+        for (var i = 0; i < incomeItems.length; i++) {
             totalIncome += incomeItems[i].value;
         }
-        return totalIncome;
-    }
 
-    var calculateTotalExpenses = function () {
-        var totalExpense = 0;
         for (var i = 0; i < expenseItems.length; i++) {
             totalExpense += expenseItems[i].value;
         }
-        return totalExpense;
-    }
 
-    var calculateBudget = function () {
-        var netBudget = calculateTotalIncome() - calculateTotalExpenses();
-        console.log(netBudget)
+        netBudget = totalIncome - totalExpense;
+
+        return {
+            totalIncome: totalIncome,
+            totalExpense: totalExpense,
+            budget: netBudget
+        }
     }
 
     return {
@@ -57,9 +58,13 @@ var budgetController = (function () {
     };
 }());
 
+
+
 // UI CONTROLLER
 
 var UIController = (function () {
+    document.querySelector('.budget__income--value').textContent = '00.00'
+
     function getInput() {
         var type = document.querySelector('.add__type').value;
         var description = document.querySelector('.add__description').value;
@@ -90,9 +95,38 @@ var UIController = (function () {
         document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
     }
 
+    var displayBudget = function (income, expenses, budget) {
+        var html;
+
+        html = `
+            <div class="budget__value">${budget}</div>
+
+            <div class="budget__income clearfix">
+                <div class="budget__income--text">Income</div>
+                <div class="right">
+                    <div class="budget__income--value">${income}</div>
+                </div>
+            </div>
+
+            <div class="budget__expenses clearfix">
+                <div class="budget__expenses--text">Expenses</div>
+                <div class="right clearfix">
+                    <div class="budget__expenses--value">${expenses}</div>
+                </div>
+            </div>
+    
+        `
+
+        document.querySelector('.budget__value').innerHTML = budget;
+        document.querySelector('.budget__income--value').innerHTML = income;
+        document.querySelector('.budget__expenses--value').innerHTML = expenses;
+
+    }
+
     return {
         getInput,
         displayItem,
+        displayBudget
     };
 
 }());
@@ -114,9 +148,10 @@ var controller = (function (budgetCtrl, UICtrl) {
         UICtrl.displayItem(newItem, input.type);
 
         // 4. Calculate the budget
-        budgetCtrl.calculateBudget();
+        var budget = budgetCtrl.calculateBudget();
 
         // 5. Display the budget on the UI
+        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
 
 
         console.log('Add item flow triggered');
