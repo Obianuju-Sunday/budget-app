@@ -44,9 +44,9 @@ var budgetController = (function () {
         netBudget = totalIncome - totalExpense;
 
         return {
-            totalIncome: totalIncome.toFixed(2),
-            totalExpense: totalExpense.toFixed(2),
-            budget: netBudget.toFixed(2)
+            totalIncome: '+ ' + totalIncome.toFixed(2),
+            totalExpense: '- ' + totalExpense.toFixed(2),
+            budget: '+ ' + netBudget.toFixed(2)
         }
     }
 
@@ -73,7 +73,7 @@ var UIController = (function () {
 
     }
 
-    var getDomStrings = function(){
+    var getDomStrings = function () {
         return DOMStrings;
     }
 
@@ -157,11 +157,29 @@ var UIController = (function () {
 // GLOBAL APP CONTROLLER
 var controller = (function (budgetCtrl, UICtrl) {
 
-    // reset Values
-    UICtrl.resetBudget();
+    var init = function () {
 
-    // DOM Strings
-    var UIConfig = UICtrl.getDomStrings()
+        // reset Values
+        UICtrl.resetBudget();
+        console.log('App fully initialized');
+        setUpEventListeners();
+        
+    }
+
+    var setUpEventListeners = function () {
+
+        // DOM Strings
+        var UIConfig = UICtrl.getDomStrings()
+
+        document.querySelector(UIConfig.addButton).addEventListener('click', addItemFlow);
+
+        document.addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                addItemFlow();
+            }
+        });
+    }
+
 
     var addItemFlow = function () {
         // 1. Get the field input data
@@ -182,19 +200,14 @@ var controller = (function (budgetCtrl, UICtrl) {
 
         // 5. Display the budget on the UI
         UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
-
-
-        // console.log('Add item flow triggered');
     };
 
-
-    document.querySelector(UIConfig.addButton).addEventListener('click', addItemFlow);
-
-    document.addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            addItemFlow();
-        }
-    });
+    return {
+        init,
+        setUpEventListeners
+    }
 
 
 })(budgetController, UIController);
+
+controller.init();
