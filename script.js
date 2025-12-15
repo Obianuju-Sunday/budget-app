@@ -16,11 +16,9 @@ var budgetController = (function () {
     }
 
     var addItem = function (type, description, value) {
-        // var budgetSelector = type === 'inc' ? '.income__list' : '.expenses__list';
         if (type === 'inc') {
             var newItem = new Item(incomeItems.length, description, value);
             incomeItems.push(newItem);
-            // console.log(newItem); // Shit added for debugging and it works
 
             return newItem;
         } else {
@@ -46,9 +44,9 @@ var budgetController = (function () {
         netBudget = totalIncome - totalExpense;
 
         return {
-            totalIncome: totalIncome,
-            totalExpense: totalExpense,
-            budget: netBudget
+            totalIncome: totalIncome.toFixed(2),
+            totalExpense: totalExpense.toFixed(2),
+            budget: netBudget.toFixed(2)
         }
     }
 
@@ -63,12 +61,26 @@ var budgetController = (function () {
 // UI CONTROLLER
 
 var UIController = (function () {
-    document.querySelector('.budget__income--value').textContent = '00.00'
+
+    var DOMStrings = {
+        inputType: '.add__type',
+        inputDescription: '.add__description',
+        inputValue: '.add__value',
+        budgetValue: '.budget__value',
+        budgetIncomeValue: '.budget__income--value',
+        budgetExpensesValue: '.budget__expenses--value',
+        addButton: '.add__btn'
+
+    }
+
+    var getDomStrings = function(){
+        return DOMStrings;
+    }
 
     function getInput() {
-        var type = document.querySelector('.add__type').value;
-        var description = document.querySelector('.add__description').value;
-        var value = Number(document.querySelector('.add__value').value);
+        var type = document.querySelector(DOMStrings.inputType).value;
+        var description = document.querySelector(DOMStrings.inputDescription).value;
+        var value = Number(document.querySelector(DOMStrings.inputValue).value);
 
         return {
             type,
@@ -96,9 +108,7 @@ var UIController = (function () {
     }
 
     var displayBudget = function (income, expenses, budget) {
-        var html;
-
-        html = `
+        var html = `
             <div class="budget__value">${budget}</div>
 
             <div class="budget__income clearfix">
@@ -117,16 +127,28 @@ var UIController = (function () {
     
         `
 
-        document.querySelector('.budget__value').innerHTML = budget;
-        document.querySelector('.budget__income--value').innerHTML = income;
-        document.querySelector('.budget__expenses--value').innerHTML = expenses;
+        document.querySelector(DOMStrings.budgetValue).innerHTML = budget;
+        document.querySelector(DOMStrings.budgetIncomeValue).innerHTML = income;
+        document.querySelector(DOMStrings.budgetExpensesValue).innerHTML = expenses;
 
     }
+
+    var resetBudget = function () {
+
+        document.querySelector(DOMStrings.budgetValue).textContent = '+ 00.00'
+        document.querySelector(DOMStrings.budgetIncomeValue).textContent = '+ 00.00'
+        document.querySelector(DOMStrings.budgetExpensesValue).textContent = '- 00.00 '
+    }
+
+
+
 
     return {
         getInput,
         displayItem,
-        displayBudget
+        displayBudget,
+        resetBudget,
+        getDomStrings
     };
 
 }());
@@ -135,30 +157,38 @@ var UIController = (function () {
 // GLOBAL APP CONTROLLER
 var controller = (function (budgetCtrl, UICtrl) {
 
+    // reset Values
+    UICtrl.resetBudget();
+
+    // DOM Strings
+    var UIConfig = UICtrl.getDomStrings()
+
     var addItemFlow = function () {
         // 1. Get the field input data
-
         var input = UICtrl.getInput();
 
-        // 2. Add the item to the budget controller
 
+        // 2. Add the item to the budget controller
         var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+
 
         // 3. Add the item to the UI
         UICtrl.displayItem(newItem, input.type);
 
+
         // 4. Calculate the budget
         var budget = budgetCtrl.calculateBudget();
+
 
         // 5. Display the budget on the UI
         UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
 
 
-        console.log('Add item flow triggered');
+        // console.log('Add item flow triggered');
     };
 
 
-    document.querySelector('.add__btn').addEventListener('click', addItemFlow);
+    document.querySelector(UIConfig.addButton).addEventListener('click', addItemFlow);
 
     document.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
