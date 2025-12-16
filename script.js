@@ -4,8 +4,18 @@ console.log('Obianuju is a very big name!')
 
 var budgetController = (function () {
 
-    var incomeItems = [];
-    var expenseItems = [];
+    var dataStore = {
+        allItems: {
+            incomeItems: [],
+            expenseItems: []
+        },
+        totals: {
+            totalIncome: 0,
+            totalExpenses: 0,
+            netBudget: 0
+        }
+    }
+
 
     class Item {
         constructor(id, description, value) {
@@ -16,37 +26,41 @@ var budgetController = (function () {
     }
 
     var addItem = function (type, description, value) {
-        if (type === 'inc') {
-            var newItem = new Item(incomeItems.length, description, value);
-            incomeItems.push(newItem);
 
-            return newItem;
+        var itemArray;
+
+        if (type === 'inc') {
+            itemArray = dataStore.allItems.incomeItems;
         } else {
-            var newItem = new Item(expenseItems.length, description, value);
-            expenseItems.push(newItem);
-            return newItem;
+            itemArray = dataStore.allItems.expenseItems;
         }
+
+        var newItem = new Item(itemArray.length, description, value);
+        itemArray.push(newItem);
+
+        return newItem;
     };
 
     var calculateBudget = function () {
-        var totalIncome = 0;
-        var totalExpense = 0;
-        var netBudget = 0;
 
-        for (var i = 0; i < incomeItems.length; i++) {
-            totalIncome += incomeItems[i].value;
+        var budgetTotals = dataStore.totals;
+        var expenses = dataStore.allItems.expenseItems;
+        var incomes = dataStore.allItems.incomeItems;
+
+        for (var i = 0; i < incomes.length; i++) {
+            budgetTotals.totalIncome += incomes[i].value;
         }
 
-        for (var i = 0; i < expenseItems.length; i++) {
-            totalExpense += expenseItems[i].value;
+        for (var i = 0; i < expenses.length; i++) {
+            budgetTotals.totalExpenses += expenses[i].value;
         }
 
-        netBudget = totalIncome - totalExpense;
+        budgetTotals.netBudget = budgetTotals.totalIncome - budgetTotals.totalExpenses;
 
         return {
-            totalIncome: '+ ' + totalIncome.toFixed(2),
-            totalExpense: '- ' + totalExpense.toFixed(2),
-            budget: '+ ' + netBudget.toFixed(2)
+            totalIncome: '+ ' + budgetTotals.totalIncome.toFixed(2),
+            totalExpense: '- ' + budgetTotals.totalExpenses.toFixed(2),
+            budget: '+ ' + budgetTotals.netBudget.toFixed(2)
         }
     }
 
@@ -140,6 +154,12 @@ var UIController = (function () {
         document.querySelector(DOMStrings.budgetExpensesValue).textContent = '- 00.00 '
     }
 
+    var clearInputField = function () {
+        document.querySelector(DOMStrings.inputType).value = '';
+        document.querySelector(DOMStrings.inputDescription).value = '';
+        document.querySelector(DOMStrings.inputValue).value = '';
+    }
+
 
 
 
@@ -148,7 +168,8 @@ var UIController = (function () {
         displayItem,
         displayBudget,
         resetBudget,
-        getDomStrings
+        getDomStrings,
+        clearInputField
     };
 
 }());
@@ -163,19 +184,25 @@ var controller = (function (budgetCtrl, UICtrl) {
         UICtrl.resetBudget();
         console.log('App fully initialized');
         setUpEventListeners();
-        
+
     }
 
     var setUpEventListeners = function () {
 
         // DOM Strings
-        var UIConfig = UICtrl.getDomStrings()
+        var UIConfig = UICtrl.getDomStrings();
 
-        document.querySelector(UIConfig.addButton).addEventListener('click', addItemFlow);
+        // A single function that calls both callbacks
+        var wrapperFunction = function () {
+            addItemFlow();
+            UICtrl.clearInputField();
+        }
+
+        document.querySelector(UIConfig.addButton).addEventListener('click', wrapperFunction);
 
         document.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
-                addItemFlow();
+                wrapperFunction();
             }
         });
     }
