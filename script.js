@@ -269,7 +269,23 @@ var controller = (function (budgetCtrl, UICtrl) {
             }
         });
 
+        document.querySelector('.reset--btn').addEventListener('click', function () {
+            // Clear local storage
+            localStorage.clear();
 
+            // Reset data store
+            budgetCtrl.getDataStore().allItems.incomeItems = [];
+            budgetCtrl.getDataStore().allItems.expenseItems = [];
+            budgetCtrl.getDataStore().totals.totalIncome = 0;
+            budgetCtrl.getDataStore().totals.totalExpenses = 0;
+            budgetCtrl.getDataStore().totals.netBudget = 0;
+
+            // Reset UI
+            UICtrl.resetBudget();
+            UICtrl.clearInputField();
+
+            document.querySelector(UIConfig.inputType).focus();
+        });
     }
 
 
