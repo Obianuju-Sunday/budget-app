@@ -4,6 +4,7 @@ console.log('Obianuju is a very big name!')
 
 var budgetController = (function () {
 
+    // Data Structure to hold all items and totals
     var dataStore = {
         allItems: {
             incomeItems: [],
@@ -16,7 +17,7 @@ var budgetController = (function () {
         }
     }
 
-
+    // Item Constructor
     class Item {
         constructor(id, description, value) {
             this.id = id;
@@ -25,6 +26,7 @@ var budgetController = (function () {
         }
     }
 
+    // Function to add item to data structure
     var addItem = function (type, description, value) {
 
         var itemArray;
@@ -41,6 +43,7 @@ var budgetController = (function () {
         return newItem;
     };
 
+    // Function to calculate budget
     var calculateBudget = function () {
 
         var budgetTotals = dataStore.totals;
@@ -64,6 +67,7 @@ var budgetController = (function () {
         }
     }
 
+    // Expose public methods
     return {
         addItem,
         calculateBudget,
@@ -76,6 +80,7 @@ var budgetController = (function () {
 
 var UIController = (function () {
 
+    // Object to hold DOM Strings
     var DOMStrings = {
         inputType: '.add__type',
         inputDescription: '.add__description',
@@ -87,10 +92,13 @@ var UIController = (function () {
 
     }
 
+    // Function to get DOM Strings
     var getDomStrings = function () {
         return DOMStrings;
     }
 
+
+    // Function to get input values
     function getInput() {
         var type = document.querySelector(DOMStrings.inputType).value;
         var description = document.querySelector(DOMStrings.inputDescription).value;
@@ -103,6 +111,7 @@ var UIController = (function () {
         };
     }
 
+    // Function to display item in the UI
     function displayItem(obj, type) {
         var html;
         var budgetSelector = type === 'inc' ? '.income__list' : '.expenses__list';
@@ -121,6 +130,8 @@ var UIController = (function () {
         document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
     }
 
+
+    // Function to display budget values
     var displayBudget = function (income, expenses, budget) {
         var html = `
             <div class="budget__value">${budget}</div>
@@ -144,9 +155,10 @@ var UIController = (function () {
         document.querySelector(DOMStrings.budgetValue).innerHTML = budget;
         document.querySelector(DOMStrings.budgetIncomeValue).innerHTML = income;
         document.querySelector(DOMStrings.budgetExpensesValue).innerHTML = expenses;
-
     }
 
+
+    // Function to reset budget display values
     var resetBudget = function () {
 
         document.querySelector(DOMStrings.budgetValue).textContent = '+ 00.00'
@@ -154,6 +166,8 @@ var UIController = (function () {
         document.querySelector(DOMStrings.budgetExpensesValue).textContent = '- 00.00 '
     }
 
+
+    // Function to clear input fields after adding an item
     var clearInputField = function () {
         document.querySelector(DOMStrings.inputType).value = '';
         document.querySelector(DOMStrings.inputDescription).value = '';
@@ -161,8 +175,7 @@ var UIController = (function () {
     }
 
 
-
-
+    // Expose public methods
     return {
         getInput,
         displayItem,
@@ -178,6 +191,7 @@ var UIController = (function () {
 // GLOBAL APP CONTROLLER
 var controller = (function (budgetCtrl, UICtrl) {
 
+    // Initialization function
     var init = function () {
 
         // reset Values
@@ -187,6 +201,7 @@ var controller = (function (budgetCtrl, UICtrl) {
 
     }
 
+    // Function to set up event listeners
     var setUpEventListeners = function () {
 
         // DOM Strings
@@ -198,6 +213,7 @@ var controller = (function (budgetCtrl, UICtrl) {
             UICtrl.clearInputField();
         }
 
+        // Event listeners for add button
         document.querySelector(UIConfig.addButton).addEventListener('click', wrapperFunction);
 
         document.addEventListener('keypress', function (event) {
@@ -208,6 +224,7 @@ var controller = (function (budgetCtrl, UICtrl) {
     }
 
 
+    // Main function to handle adding item flow
     var addItemFlow = function () {
         // 1. Get the field input data
         var input = UICtrl.getInput();
@@ -229,6 +246,8 @@ var controller = (function (budgetCtrl, UICtrl) {
         UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
     };
 
+
+    // Expose public methods
     return {
         init,
         setUpEventListeners
@@ -237,4 +256,5 @@ var controller = (function (budgetCtrl, UICtrl) {
 
 })(budgetController, UIController);
 
+// Initialize the application
 controller.init();
