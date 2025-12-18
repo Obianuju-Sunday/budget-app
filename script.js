@@ -40,6 +40,8 @@ var budgetController = (function () {
         var newItem = new Item(itemArray.length, description, value);
         itemArray.push(newItem);
 
+        console.log(dataStore.allItems) // For testing purposes
+
         return newItem;
     };
 
@@ -49,7 +51,7 @@ var budgetController = (function () {
         var budgetTotals = dataStore.totals;
         var expenses = dataStore.allItems.expenseItems;
         var incomes = dataStore.allItems.incomeItems;
-        
+
         budgetTotals.totalIncome = 0
         budgetTotals.totalExpenses = 0
 
@@ -68,6 +70,32 @@ var budgetController = (function () {
             totalExpense: '- ' + budgetTotals.totalExpenses.toFixed(2),
             budget: '+ ' + budgetTotals.netBudget.toFixed(2)
         }
+
+    }
+
+    var getDataStore = function () {
+        return dataStore;
+    }
+
+
+    var saveData = function () {
+
+        // 1. Convert the dataStore object to a JSON string before storing/saving
+        localStorage.setItem('userData', JSON.stringify(dataStore));
+
+    }
+
+
+
+    var loadData = function () {
+        // 2. Retrieve the string and convert it back to an object:
+        var storedDataString = localStorage.getItem('userData');
+
+        // Check if data exists before parsing to avoid errors if the key is new:
+        if (storedDataString) {
+            var storedUserData = JSON.parse(storedDataString);
+            // console.log(storedUserData.allItems.incomeItems);
+        }
     }
 
 
@@ -75,6 +103,10 @@ var budgetController = (function () {
     return {
         addItem,
         calculateBudget,
+        getDataStore,
+        saveData,
+        loadData
+
     };
 }());
 
@@ -92,8 +124,8 @@ var UIController = (function () {
         budgetValue: '.budget__value',
         budgetIncomeValue: '.budget__income--value',
         budgetExpensesValue: '.budget__expenses--value',
-        addButton: '.add__btn'
-
+        addButton: '.add__btn',
+        resetButton: '.reset--btn'
     };
 
     // Function to get DOM Strings
@@ -198,11 +230,16 @@ var controller = (function (budgetCtrl, UICtrl) {
     // Initialization function
     var init = function () {
 
-        // reset Values
-        UICtrl.resetBudget();
-        console.log('App fully initialized');
-        setUpEventListeners();
+        // 1. Load data from local storage
+        budgetCtrl.loadData();
 
+        var budget = budgetCtrl.calculateBudget();
+        // 2. Display initial budget values
+        var everyTotal = budgetCtrl.getDataStore().totals;
+        UICtrl.displayBudget(everyTotal.totalIncome, everyTotal.totalExpenses, everyTotal.netBudget);
+
+        // 3. Set up event listeners
+        setUpEventListeners();
     }
 
     // Function to set up event listeners
@@ -219,8 +256,7 @@ var controller = (function (budgetCtrl, UICtrl) {
             // 2. Clear input fields
             UICtrl.clearInputField();
 
-
-            // Restore focus to description input field
+            // 3. Restore focus to type input field
             document.querySelector(UIConfig.inputType).focus();
         }
 
@@ -232,6 +268,8 @@ var controller = (function (budgetCtrl, UICtrl) {
                 wrapperFunction();
             }
         });
+
+
     }
 
 
@@ -252,9 +290,11 @@ var controller = (function (budgetCtrl, UICtrl) {
         // 4. Calculate the budget
         var budget = budgetCtrl.calculateBudget();
 
-
         // 5. Display the budget on the UI
         UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
+
+        // 6. Save the data to local storage
+        budgetCtrl.saveData();
     };
 
 
