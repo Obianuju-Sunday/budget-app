@@ -15,7 +15,7 @@ var budgetController = (function () {
             totalExpenses: 0,
             netBudget: 0
         }
-    }
+    };
 
     // Item Constructor
     class Item {
@@ -49,6 +49,9 @@ var budgetController = (function () {
         var budgetTotals = dataStore.totals;
         var expenses = dataStore.allItems.expenseItems;
         var incomes = dataStore.allItems.incomeItems;
+        
+        budgetTotals.totalIncome = 0
+        budgetTotals.totalExpenses = 0
 
         for (var i = 0; i < incomes.length; i++) {
             budgetTotals.totalIncome += incomes[i].value;
@@ -66,6 +69,7 @@ var budgetController = (function () {
             budget: '+ ' + budgetTotals.netBudget.toFixed(2)
         }
     }
+
 
     // Expose public methods
     return {
@@ -90,7 +94,7 @@ var UIController = (function () {
         budgetExpensesValue: '.budget__expenses--value',
         addButton: '.add__btn'
 
-    }
+    };
 
     // Function to get DOM Strings
     var getDomStrings = function () {
@@ -209,8 +213,15 @@ var controller = (function (budgetCtrl, UICtrl) {
 
         // A single function that calls both callbacks
         var wrapperFunction = function () {
+            // 1. Add item flow
             addItemFlow();
+
+            // 2. Clear input fields
             UICtrl.clearInputField();
+
+
+            // Restore focus to description input field
+            document.querySelector(UIConfig.inputType).focus();
         }
 
         // Event listeners for add button
