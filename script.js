@@ -48,6 +48,7 @@ var budgetController = (function () {
     // Function to calculate budget
     var calculateBudget = function () {
 
+
         var budgetTotals = dataStore.totals;
         var expenses = dataStore.allItems.expenseItems;
         var incomes = dataStore.allItems.incomeItems;
@@ -64,7 +65,6 @@ var budgetController = (function () {
         }
 
         budgetTotals.netBudget = budgetTotals.totalIncome - budgetTotals.totalExpenses;
-
         return {
             totalIncome: '+ ' + budgetTotals.totalIncome.toFixed(2),
             totalExpense: '- ' + budgetTotals.totalExpenses.toFixed(2),
@@ -89,13 +89,26 @@ var budgetController = (function () {
 
     var loadData = function () {
         // 2. Retrieve the string and convert it back to an object:
-        var storedDataString = localStorage.getItem('userData');
+        var savedDataString = localStorage.getItem('userData');
 
-        // Check if data exists before parsing to avoid errors if the key is new:
-        if (storedDataString) {
-            var storedUserData = JSON.parse(storedDataString);
-            // console.log(storedUserData.allItems.incomeItems);
+
+        // Check if data exists before parsing to avoid errors
+        if (savedDataString) {
+            var storedUserData = JSON.parse(savedDataString);
+            console.log(storedUserData);
+        } else {
+            console.log('No saved data found in local storage.');
+            return;
         }
+
+        // RESTORE DATA INTO LIVE STATE
+        dataStore.allItems.incomeItems = storedUserData.allItems.incomeItems;
+        dataStore.allItems.expenseItems = storedUserData.allItems.expenseItems;
+        dataStore.totals.totalIncome = storedUserData.totals.totalIncome;
+        dataStore.totals.totalExpenses = storedUserData.totals.totalExpenses;
+        dataStore.totals.netBudget = storedUserData.totals.netBudget;
+
+        console.log('Data restored into dataStore:', dataStore);
     }
 
 
@@ -185,7 +198,7 @@ var UIController = (function () {
                     <div class="budget__expenses--value">${expenses}</div>
                 </div>
             </div>
-    
+
         `
 
         document.querySelector(DOMStrings.budgetValue).innerHTML = budget;
@@ -197,9 +210,9 @@ var UIController = (function () {
     // Function to reset budget display values
     var resetBudget = function () {
 
-        document.querySelector(DOMStrings.budgetValue).textContent = '+ 00.00'
-        document.querySelector(DOMStrings.budgetIncomeValue).textContent = '+ 00.00'
-        document.querySelector(DOMStrings.budgetExpensesValue).textContent = '- 00.00 '
+        document.querySelector(DOMStrings.budgetValue).textContent = '+ 0.00'
+        document.querySelector(DOMStrings.budgetIncomeValue).textContent = '+ 0.00'
+        document.querySelector(DOMStrings.budgetExpensesValue).textContent = '- 0.00 '
     }
 
 
@@ -230,15 +243,29 @@ var controller = (function (budgetCtrl, UICtrl) {
     // Initialization function
     var init = function () {
 
-        // 1. Load data from local storage
+        // 1. Load saved data
         budgetCtrl.loadData();
 
-        var budget = budgetCtrl.calculateBudget();
-        // 2. Display initial budget values
-        var everyTotal = budgetCtrl.getDataStore().totals;
-        UICtrl.displayBudget(everyTotal.totalIncome, everyTotal.totalExpenses, everyTotal.netBudget);
+        // 2. Render saved items
+        var items = budgetCtrl.getDataStore().allItems;
+        console.log(items);
+        items.incomeItems.forEach(function (item) {
+            UICtrl.displayItem(item, 'inc');
+        });
 
-        // 3. Set up event listeners
+        items.expenseItems.forEach(function (item) {
+            UICtrl.displayItem(item, 'exp');
+        });
+
+        // 3. Recalculate & display budget
+        var budget = budgetCtrl.calculateBudget();
+        UICtrl.displayBudget(
+            budget.totalIncome,
+            budget.totalExpense,
+            budget.budget
+        );
+
+        // 4. Set listeners
         setUpEventListeners();
     }
 
@@ -325,3 +352,56 @@ var controller = (function (budgetCtrl, UICtrl) {
 
 // Initialize the application
 controller.init();
+
+
+document.getElementById('changeBtn').addEventListener('click', function () {
+    // document.body.style.backgroundColor = getRandomColor();
+    document.body.style.backgroundColor = 'darkblue';
+
+});
+
+
+// // THEME CONTROLLER TO UNDERSTAND LOCAL STORAGE
+
+// var currentTheme = 'lightblue';
+
+// // Event listener for theme change button
+// function applyTheme(theme) {
+//     document.body.style.backgroundColor = theme;
+// }
+
+// // Save theme to local storage
+// function saveTheme(currentTheme) {
+//     localStorage.setItem('selectedTheme', currentTheme);
+// }
+
+// // Load theme from local storage
+// function loadTheme() {
+
+//     var theme = localStorage.getItem('selectedTheme');
+//     if (theme) {
+//         currentTheme = theme;
+//         applyTheme(currentTheme);
+//     }else {
+//         applyTheme('red'); // Default theme
+//     }
+// }
+
+// document.getElementById('changeBtn').addEventListener('click', function () {
+//     // 1. Flip the theme
+//     if (currentTheme === 'lightblue') {
+//         currentTheme = 'darkblue';
+//     } else {
+//         currentTheme = 'lightblue';
+//     }
+
+//     // 2. Apply the new theme
+//     applyTheme(currentTheme);
+
+//     // 3. Save the new theme in localStorage
+//     saveTheme(currentTheme);
+
+// });
+// // Load the theme when the page loads
+
+// loadTheme();
