@@ -80,15 +80,13 @@ var budgetController = (function () {
 
     var saveData = function () {
 
-        // 1. Convert the dataStore object to a JSON string before storing/saving
+        // 1. Convert the dataStore object to a JSON string before storing/saving to localStorage:
         localStorage.setItem('userData', JSON.stringify(dataStore));
 
     }
 
-
-
     var loadData = function () {
-        // 2. Retrieve the string and convert it back to an object:
+        // 2. Retrieve the stored/saved string from localStorage, convert it back to an object and put it back to dataStore. userData is the key we used to store the data.
         var savedDataString = localStorage.getItem('userData');
 
 
@@ -138,7 +136,10 @@ var UIController = (function () {
         budgetIncomeValue: '.budget__income--value',
         budgetExpensesValue: '.budget__expenses--value',
         addButton: '.add__btn',
-        resetButton: '.reset--btn'
+        resetButton: '.reset--btn',
+        deleteButton: '.item__delete--btn',
+        incomeContainer: '.income__list',
+        expensesContainer: '.expenses__list'
     };
 
     // Function to get DOM Strings
@@ -248,9 +249,10 @@ var controller = (function (budgetCtrl, UICtrl) {
 
         // 2. Render saved items
         var items = budgetCtrl.getDataStore().allItems;
-        console.log(items);
+        // console.log(items);
         items.incomeItems.forEach(function (item) {
             UICtrl.displayItem(item, 'inc');
+            console.log(item); // For testing purposes
         });
 
         items.expenseItems.forEach(function (item) {
@@ -313,6 +315,8 @@ var controller = (function (budgetCtrl, UICtrl) {
 
             document.querySelector(UIConfig.inputType).focus();
         });
+
+
     }
 
 
@@ -361,47 +365,32 @@ document.getElementById('changeBtn').addEventListener('click', function () {
 });
 
 
-// // THEME CONTROLLER TO UNDERSTAND LOCAL STORAGE
+// Mini project: Chat input with clear button to understand local storage
 
-// var currentTheme = 'lightblue';
+// var textInput = document.getElementById('textInput');
 
-// // Event listener for theme change button
-// function applyTheme(theme) {
-//     document.body.style.backgroundColor = theme;
+// function saveData() {
+//     localStorage.setItem('chatInput', textInput.value);
+//     console.log('Data saved:', textInput.value);
 // }
 
-// // Save theme to local storage
-// function saveTheme(currentTheme) {
-//     localStorage.setItem('selectedTheme', currentTheme);
-// }
+// function loadData() {
+//     var savedText = localStorage.getItem('chatInput');
+//     if (savedText) {
+//         textInput.value = savedText;
+//         console.log('Data loaded:', savedText);
 
-// // Load theme from local storage
-// function loadTheme() {
-
-//     var theme = localStorage.getItem('selectedTheme');
-//     if (theme) {
-//         currentTheme = theme;
-//         applyTheme(currentTheme);
-//     }else {
-//         applyTheme('red'); // Default theme
-//     }
-// }
-
-// document.getElementById('changeBtn').addEventListener('click', function () {
-//     // 1. Flip the theme
-//     if (currentTheme === 'lightblue') {
-//         currentTheme = 'darkblue';
 //     } else {
-//         currentTheme = 'lightblue';
+//         textInput.value = '';
+//         console.log('No saved data found.');
 //     }
+// }
+// loadData();
+// // document.addEventListener('DOMContentLoaded', loadData);
 
-//     // 2. Apply the new theme
-//     applyTheme(currentTheme);
-
-//     // 3. Save the new theme in localStorage
-//     saveTheme(currentTheme);
-
+// textInput.addEventListener('input', saveData);
+// document.getElementById('clearBtn').addEventListener('click', function () {
+//     localStorage.clear();
+//     textInput.value = '';
+//     console.log('Data cleared.');
 // });
-// // Load the theme when the page loads
-
-// loadTheme();
