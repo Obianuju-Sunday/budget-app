@@ -109,6 +109,33 @@ var budgetController = (function () {
         console.log('Data restored into dataStore:', dataStore);
     }
 
+    var deleteItem = function (type, itemID) {
+        var itemArray;
+
+        if (type === 'inc') {
+            itemArray = dataStore.allItems.incomeItems;
+        } else {
+            itemArray = dataStore.allItems.expenseItems;
+        }
+
+        // Find index of item to be deleted
+        var index = itemArray.findIndex(function (item) {
+            return item.id === itemID;
+        });
+
+        // Remove item from array if found
+        if (index !== -1) {
+            itemArray.splice(index, 1);
+        }
+
+        // Save updated data to local storage
+        saveData();
+    }
+
+    // var clearData = function () {
+    //     localStorage.clear();
+    // }
+
 
     // Expose public methods
     return {
@@ -116,10 +143,25 @@ var budgetController = (function () {
         calculateBudget,
         getDataStore,
         saveData,
-        loadData
+        loadData,
+        deleteItem
+        // clearData --- IGNORE ---
 
     };
 }());
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -138,8 +180,7 @@ var UIController = (function () {
         addButton: '.add__btn',
         resetButton: '.reset--btn',
         deleteButton: '.item__delete--btn',
-        incomeContainer: '.income__list',
-        expensesContainer: '.expenses__list'
+        allItemsContainer: '.container'
     };
 
     // Function to get DOM Strings
@@ -207,6 +248,19 @@ var UIController = (function () {
         document.querySelector(DOMStrings.budgetExpensesValue).innerHTML = expenses;
     }
 
+    var deleteItem = function (itemID) {
+
+        var itemElement = document.getElementById(itemID);
+
+        if (itemElement) (
+            itemElement.parentNode.removeChild(itemElement)
+        )
+    }
+
+
+
+
+
 
     // Function to reset budget display values
     var resetBudget = function () {
@@ -230,12 +284,28 @@ var UIController = (function () {
         getInput,
         displayItem,
         displayBudget,
+        deleteItem,
         resetBudget,
         getDomStrings,
         clearInputField
     };
 
 }());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // GLOBAL APP CONTROLLER
@@ -298,6 +368,27 @@ var controller = (function (budgetCtrl, UICtrl) {
             }
         });
 
+        // event listener for delete button using event delegation
+
+        document.querySelector(UIConfig.allItemsContainer).addEventListener('click', function (event) {
+
+            if (event.target && event.target.classList.contains('ion-ios-close-outline')) {
+
+                var itemID, type, ID, splitID;
+                itemID = event.target.closest('.item').id;
+                splitID = itemID.split('-');
+                type = splitID[0];
+                ID = Number(splitID[1]);
+                console.log(type, ID);
+                budgetCtrl.deleteItem(type, ID);
+
+                UICtrl.deleteItem(itemID);
+
+                var budget = budgetCtrl.calculateBudget();
+                UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
+            }
+        })
+
         document.querySelector('.reset--btn').addEventListener('click', function () {
             // Clear local storage
             localStorage.clear();
@@ -358,11 +449,11 @@ var controller = (function (budgetCtrl, UICtrl) {
 controller.init();
 
 
-document.getElementById('changeBtn').addEventListener('click', function () {
-    // document.body.style.backgroundColor = getRandomColor();
-    document.body.style.backgroundColor = 'darkblue';
+// document.getElementById('changeBtn').addEventListener('click', function () {
+//     // document.body.style.backgroundColor = getRandomColor();
+//     document.body.style.backgroundColor = 'darkblue';
 
-});
+// });
 
 
 // Mini project: Chat input with clear button to understand local storage
