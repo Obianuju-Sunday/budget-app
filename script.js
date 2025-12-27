@@ -19,10 +19,11 @@ var budgetController = (function () {
 
     // Item Constructor
     class Item {
-        constructor(id, description, value) {
+        constructor(id, description, value, percentage) {
             this.id = id;
             this.description = description;
             this.value = value;
+            this.percentage = percentage;
         }
     }
 
@@ -71,6 +72,30 @@ var budgetController = (function () {
             budget: '+ ' + budgetTotals.netBudget.toFixed(2)
         }
 
+    }
+
+    var calculatePercentages = function () {
+
+        var totalIncome = dataStore.totals.totalIncome;
+        var expenses = dataStore.allItems.expenseItems;
+        if(totalIncome === 0){
+
+            expenses.forEach(function(item){
+                item.percentage = 0;
+            })
+        } else {
+            expenses.forEach(function(item){
+                item.percentage = (item.value / totalIncome ) * 100;
+            })
+        }
+    }
+
+    var getPercentages = function () {
+        var expenses = dataStore.allItems.expenseItems;
+        var allPercentages = expenses.map(function(item){
+            return item.percentage;
+        });
+        return allPercentages;
     }
 
     var getDataStore = function () {
@@ -223,7 +248,7 @@ var UIController = (function () {
 
 
     // Function to display budget values
-    var displayBudget = function (income, expenses, budget) {
+    var displayBudget = function (income, expenses, budget, percentage) {
         var html = `
             <div class="budget__value">${budget}</div>
 
@@ -238,6 +263,8 @@ var UIController = (function () {
                 <div class="budget__expenses--text">Expenses</div>
                 <div class="right clearfix">
                     <div class="budget__expenses--value">${expenses}</div>
+                    <!-- <div class="budget__expenses--percentage">45</div> -->
+
                 </div>
             </div>
 
