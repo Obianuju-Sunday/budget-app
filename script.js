@@ -13,7 +13,8 @@ var budgetController = (function () {
         totals: {
             totalIncome: 0,
             totalExpenses: 0,
-            netBudget: 0
+            netBudget: 0,
+            totalExpensePercentage: 0
         }
     };
 
@@ -66,10 +67,13 @@ var budgetController = (function () {
         }
 
         budgetTotals.netBudget = budgetTotals.totalIncome - budgetTotals.totalExpenses;
+        budgetTotals.totalExpensePercentage = (budgetTotals.totalExpenses / budgetTotals.totalIncome) * 100;
+
         return {
             totalIncome: '+ ' + budgetTotals.totalIncome.toFixed(2),
             totalExpense: '- ' + budgetTotals.totalExpenses.toFixed(2),
-            budget: '+ ' + budgetTotals.netBudget.toFixed(2)
+            budget: '+ ' + budgetTotals.netBudget.toFixed(2),
+            totalExpensePercentage: budgetTotals.totalExpensePercentage.toFixed(2)
         }
 
     }
@@ -172,8 +176,6 @@ var budgetController = (function () {
         deleteItem,
         calculatePercentages,
         getPercentages,
-        // clearData --- IGNORE ---
-
     };
 }());
 
@@ -207,7 +209,8 @@ var UIController = (function () {
         addButton: '.add__btn',
         resetButton: '.reset--btn',
         deleteButton: '.item__delete--btn',
-        allItemsContainer: '.container'
+        allItemsContainer: '.container',
+        budgetExpensesPercentage: '.budget__expenses--percentage'
     };
 
     // Function to get DOM Strings
@@ -275,15 +278,17 @@ var UIController = (function () {
                 <div class="budget__expenses--text">Expenses</div>
                 <div class="right clearfix">
                     <div class="budget__expenses--value">${expenses}</div>
-                    <div class="budget__expenses--percentage">${percentages}%</div> // doesnt work yet
+                    <div class="budget__expenses--percentage">${percentages}</div>
                 </div>
             </div>
 
         `
+        console.log(percentages)
 
         document.querySelector(DOMStrings.budgetValue).innerHTML = budget;
         document.querySelector(DOMStrings.budgetIncomeValue).innerHTML = income;
         document.querySelector(DOMStrings.budgetExpensesValue).innerHTML = expenses;
+        document.querySelector(DOMStrings.budgetExpensesPercentage).innerHTML = Math.round(percentages) + '%';
     }
 
     var deleteItem = function (itemID) {
@@ -336,7 +341,8 @@ var UIController = (function () {
         resetBudget,
         getDomStrings,
         clearInputField,
-        displayPercentages
+        displayPercentages,
+        // displayTotalExpensePercentage
     };
 
 }());
@@ -365,9 +371,8 @@ var controller = (function (budgetCtrl, UICtrl) {
         // 1. Load saved data
         budgetCtrl.loadData();
 
-        // 2. Render saved items
+        // 2. Render saved income and expense items to UI
         var items = budgetCtrl.getDataStore().allItems;
-        // console.log(items);
         items.incomeItems.forEach(function (item) {
             UICtrl.displayItem(item, 'inc');
             console.log(item); // For testing purposes
@@ -377,17 +382,22 @@ var controller = (function (budgetCtrl, UICtrl) {
             UICtrl.displayItem(item, 'exp');
         });
 
-        // 3. Recalculate & display budget
+        // 3. Recalculate budget/totals
         var budget = budgetCtrl.calculateBudget();
 
+        // Display budget/totals
         UICtrl.displayBudget(
             budget.totalIncome,
             budget.totalExpense,
-            budget.budget
+            budget.budget,
+            budget.totalExpensePercentage
         );
 
-        // var percentages = budgetCtrl.calculatePercentages();
+        // Calculate percentages
+        budgetCtrl.calculatePercentages();
         var allPercentages = budgetCtrl.getPercentages();
+
+        // Display percentages
         UICtrl.displayPercentages(allPercentages);
 
         // 4. Set listeners
@@ -482,7 +492,13 @@ var controller = (function (budgetCtrl, UICtrl) {
         var budget = budgetCtrl.calculateBudget();
 
         // 5. Display the budget on the UI
-        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget);
+        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget, budget.totalExpensePercentage);
+
+        // Calculate percentages
+        budgetCtrl.calculatePercentages();
+        var allPercentages = budgetCtrl.getPercentages();
+
+        UICtrl.displayPercentages(allPercentages);
 
         // 6. Save the data to local storage
         budgetCtrl.saveData();
