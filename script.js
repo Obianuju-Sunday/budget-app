@@ -78,21 +78,21 @@ var budgetController = (function () {
 
         var totalIncome = dataStore.totals.totalIncome;
         var expenses = dataStore.allItems.expenseItems;
-        if(totalIncome === 0){
+        if (totalIncome === 0) {
 
-            expenses.forEach(function(item){
+            expenses.forEach(function (item) {
                 item.percentage = 0;
             })
         } else {
-            expenses.forEach(function(item){
-                item.percentage = (item.value / totalIncome ) * 100;
+            expenses.forEach(function (item) {
+                item.percentage = (item.value / totalIncome) * 100;
             })
         }
     }
 
     var getPercentages = function () {
         var expenses = dataStore.allItems.expenseItems;
-        var allPercentages = expenses.map(function(item){
+        var allPercentages = expenses.map(function (item) {
             return item.percentage;
         });
         return allPercentages;
@@ -169,7 +169,9 @@ var budgetController = (function () {
         getDataStore,
         saveData,
         loadData,
-        deleteItem
+        deleteItem,
+        calculatePercentages,
+        getPercentages,
         // clearData --- IGNORE ---
 
     };
@@ -229,26 +231,36 @@ var UIController = (function () {
 
     // Function to display item in the UI
     function displayItem(obj, type) {
-        var html;
         var budgetSelector = type === 'inc' ? '.income__list' : '.expenses__list';
 
         html = `
-            <div class="item clearfix" id="${type}-${obj.id}">
-                <div class="item__description">${obj.description}</div>
-                <div class="right clearfix">
-                    <div class="item__value">${obj.value}</div>
-                    <div class="item__delete">
-                        <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
-                    </div>
+        <div class="item clearfix" id="${type}-${obj.id}">
+            <div class="item__description">${obj.description}</div>
+            <div class="right clearfix">
+                <div class="item__value">${obj.value}</div>
+    `;
+
+        // ONLY expenses get percentage
+        if (type === 'exp') {
+            html += `<div class="item__percentage">${Math.round(obj.percentage)}%</div>`;
+        }
+
+        html += `
+                <div class="item__delete">
+                    <button class="item__delete--btn">
+                        <i class="ion-ios-close-outline"></i>
+                    </button>
                 </div>
             </div>
-            `;
+        </div>
+    `;
+
         document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
     }
 
 
     // Function to display budget values
-    var displayBudget = function (income, expenses, budget, percentage) {
+    var displayBudget = function (income, expenses, budget, percentages) {
         var html = `
             <div class="budget__value">${budget}</div>
 
@@ -263,8 +275,7 @@ var UIController = (function () {
                 <div class="budget__expenses--text">Expenses</div>
                 <div class="right clearfix">
                     <div class="budget__expenses--value">${expenses}</div>
-                    <!-- <div class="budget__expenses--percentage">45</div> -->
-
+                    <div class="budget__expenses--percentage">${percentages}%</div> // doesnt work yet
                 </div>
             </div>
 
@@ -284,8 +295,18 @@ var UIController = (function () {
         )
     }
 
+    var displayPercentages = function (percentages) {
+        var expenseItems = document.querySelectorAll('.expenses__list .item');
+        var percentageElement = document.querySelectorAll('.item__percentage');
 
-
+        expenseItems.forEach(function (item, index) {
+            if (percentages[index] > 0) {
+                percentageElement.textContent = percentages[index] + '%';
+            } else {
+                percentageElement.textContent = '0%';
+            }
+        });
+    }
 
 
 
@@ -314,11 +335,11 @@ var UIController = (function () {
         deleteItem,
         resetBudget,
         getDomStrings,
-        clearInputField
+        clearInputField,
+        displayPercentages
     };
 
 }());
-
 
 
 
@@ -358,11 +379,16 @@ var controller = (function (budgetCtrl, UICtrl) {
 
         // 3. Recalculate & display budget
         var budget = budgetCtrl.calculateBudget();
+
         UICtrl.displayBudget(
             budget.totalIncome,
             budget.totalExpense,
             budget.budget
         );
+
+        // var percentages = budgetCtrl.calculatePercentages();
+        var allPercentages = budgetCtrl.getPercentages();
+        UICtrl.displayPercentages(allPercentages);
 
         // 4. Set listeners
         setUpEventListeners();
@@ -456,7 +482,7 @@ var controller = (function (budgetCtrl, UICtrl) {
         var budget = budgetCtrl.calculateBudget();
 
         // 5. Display the budget on the UI
-        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
+        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget);
 
         // 6. Save the data to local storage
         budgetCtrl.saveData();
@@ -474,6 +500,9 @@ var controller = (function (budgetCtrl, UICtrl) {
 
 // Initialize the application
 controller.init();
+
+
+
 
 
 // document.getElementById('changeBtn').addEventListener('click', function () {
