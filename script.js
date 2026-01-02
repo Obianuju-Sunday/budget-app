@@ -28,6 +28,7 @@ var budgetController = (function () {
         }
     }
 
+
     // Function to add item to data structure
     var addItem = function (type, description, value) {
 
@@ -39,7 +40,13 @@ var budgetController = (function () {
             itemArray = dataStore.allItems.expenseItems;
         }
 
-        var newItem = new Item(itemArray.length, description, value);
+        var ID = itemArray.length > 0
+            ? itemArray[itemArray.length - 1].id + 1
+            : 0;
+
+
+
+        var newItem = new Item(ID, description, value);
         itemArray.push(newItem);
 
         console.log(dataStore.allItems) // For testing purposes
@@ -78,7 +85,11 @@ var budgetController = (function () {
 
     }
 
-    var calculatePercentages = function () {
+    var getDataStore = function () {
+        return dataStore;
+    }
+
+        var calculatePercentages = function () {
 
         var totalIncome = dataStore.totals.totalIncome;
         var expenses = dataStore.allItems.expenseItems;
@@ -100,10 +111,6 @@ var budgetController = (function () {
             return item.percentage;
         });
         return allPercentages;
-    }
-
-    var getDataStore = function () {
-        return dataStore;
     }
 
 
@@ -134,6 +141,7 @@ var budgetController = (function () {
         dataStore.totals.totalIncome = storedUserData.totals.totalIncome;
         dataStore.totals.totalExpenses = storedUserData.totals.totalExpenses;
         dataStore.totals.netBudget = storedUserData.totals.netBudget;
+        dataStore.totals.totalExpensePercentage = storedUserData.totals.totalExpensePercentage;
 
         console.log('Data restored into dataStore:', dataStore);
     }
@@ -156,6 +164,8 @@ var budgetController = (function () {
         if (index !== -1) {
             itemArray.splice(index, 1);
         }
+
+
 
         // Save updated data to local storage
         saveData();
@@ -241,12 +251,13 @@ var UIController = (function () {
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
                 <div class="item__value">${obj.value}</div>
-    `;
+        `;
 
         // ONLY expenses get percentage
         if (type === 'exp') {
-            html += `<div class="item__percentage">${Math.round(obj.percentage)}%</div>`;
+            html += `<div class="item__percentage">--</div>`;
         }
+        console.log(obj.percentage) // For testing purposes
 
         html += `
                 <div class="item__delete">
@@ -256,7 +267,7 @@ var UIController = (function () {
                 </div>
             </div>
         </div>
-    `;
+        `;
 
         document.querySelector(budgetSelector).insertAdjacentHTML('beforeend', html);
     }
@@ -300,18 +311,36 @@ var UIController = (function () {
         )
     }
 
-    var displayPercentages = function (percentages) {
-        var expenseItems = document.querySelectorAll('.expenses__list .item');
-        var percentageElement = document.querySelectorAll('.item__percentage');
+    // var displayPercentages = function (percentages) {
+    //     var percentageElement = document.querySelectorAll('.item__percentage .expenses__list .item__percentage');
 
-        expenseItems.forEach(function (item, index) {
-            if (percentages[index] > 0) {
-                percentageElement.textContent = percentages[index] + '%';
-            } else {
-                percentageElement.textContent = '0%';
+    //     percentageElement.forEach(function (item, index) {
+    //         if (percentages[index] > 0) {
+    //             item.textContent = percentages[index] + '%';
+    //         } else {
+    //             item.textContent = '0%';
+    //         }
+    //     });
+    // }
+
+var displayPercentages = function () {
+    var expenses = budgetController.getDataStore().allItems.expenseItems;
+
+    expenses.forEach(function(item) {
+        // Grab the parent by ID
+        var elParent = document.getElementById('exp-' + item.id);
+        if (elParent) {
+            var el = elParent.querySelector('.item__percentage');
+            if (el) {
+                el.textContent = item.percentage > 0 ? Math.round(item.percentage) + '%' : '0%';
             }
-        });
-    }
+        }
+    });
+};
+
+
+
+
 
 
 
@@ -448,7 +477,12 @@ var controller = (function (budgetCtrl, UICtrl) {
                 UICtrl.deleteItem(itemID);
 
                 var budget = budgetCtrl.calculateBudget();
-                UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget)
+                UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget, budget.totalExpensePercentage);
+                budgetCtrl.calculatePercentages();
+                var allPercentages = budgetCtrl.getPercentages();
+                UICtrl.displayPercentages(allPercentages);
+
+                budgetCtrl.saveData();
             }
         })
 
@@ -475,34 +509,42 @@ var controller = (function (budgetCtrl, UICtrl) {
 
 
     // Main function to handle adding item flow
-    var addItemFlow = function () {
-        // 1. Get the field input data
-        var input = UICtrl.getInput();
+var addItemFlow = function () {
+    // 1. Get input
+    var input = UICtrl.getInput();
+    if (!input.description || input.value <= 0) return;
 
+    // 2. Add item to budgetController
+    var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
 
-        // 2. Add the item to the budget controller
-        var newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+    // 3. Calculate the budget immediately
+    var budget = budgetCtrl.calculateBudget();
 
+    // 4. Calculate percentages immediately after budget
+    budgetCtrl.calculatePercentages();
 
-        // 3. Add the item to the UI
-        UICtrl.displayItem(newItem, input.type);
+    // 5. Add the item to the UI
+    UICtrl.displayItem(newItem, input.type);
 
+    // 6. Update budget display
+    UICtrl.displayBudget(
+        budget.totalIncome,
+        budget.totalExpense,
+        budget.budget,
+        budget.totalExpensePercentage
+    );
 
-        // 4. Calculate the budget
-        var budget = budgetCtrl.calculateBudget();
+    // 7. Display percentages safely
+    UICtrl.displayPercentages();
 
-        // 5. Display the budget on the UI
-        UICtrl.displayBudget(budget.totalIncome, budget.totalExpense, budget.budget, budget.totalExpensePercentage);
+    // 8. Clear input
+    UICtrl.clearInputField();
+    document.querySelector(UICtrl.getDomStrings().inputType).focus();
 
-        // Calculate percentages
-        budgetCtrl.calculatePercentages();
-        var allPercentages = budgetCtrl.getPercentages();
+    // 9. Save data
+    budgetCtrl.saveData();
+};
 
-        UICtrl.displayPercentages(allPercentages);
-
-        // 6. Save the data to local storage
-        budgetCtrl.saveData();
-    };
 
 
     // Expose public methods
